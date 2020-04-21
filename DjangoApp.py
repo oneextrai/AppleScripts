@@ -1,3 +1,4 @@
+import os
 import requests
 import argparse
 
@@ -8,14 +9,22 @@ parser = argparse.ArgumentParser()
 parser.add_argument("ProjectName")
 parser.add_argument("AppName")
 parser.add_argument("ProjectDirectory")
-parser.add_argument("IPAddress")
 
 # parse the arguments
 args = parser.parse_args()
 
+def add_files():
+	os.system(f'mkdir {args.ProjectDirectory}/{args.ProjectName}/{args.AppName}/static/')
+	os.system(f'mkdir {args.ProjectDirectory}/{args.ProjectName}/{args.AppName}/static/css {args.ProjectDirectory}/{args.ProjectName}/{args.AppName}/static/js')
+	os.system(f'mkdir {args.AppName}/templates/')
+	os.system(f'mkdir {args.AppName}/templates/{args.AppName}')
+	
+	os.system(f'touch {args.ProjectDirectory}/{args.ProjectName}/{args.AppName}/static/js/scripts.js {args.ProjectDirectory}/{args.ProjectName}/{args.AppName}/static/css/style.css')
+
 # SETTINGS
 def update_settings():
-	with open(f"{args.ProjectDirectory}/{args.ProjectName}/settings.py", 'r') as f:
+	filename = f"{args.ProjectDirectory}/{args.ProjectName}/{args.ProjectName}/settings.py"
+	with open(filename, 'r') as f:
 		lines = f.readlines()
 
 	message = ""
@@ -23,16 +32,14 @@ def update_settings():
 	for line in lines:
 		if "INSTALLED_APPS = [" in line:
 			line += (f"\t'{args.AppName}.apps.{args.AppName.capitalize()}Config',\n")
-		if "ALLOWED_HOSTS = [" in line:
-			line = f"""ALLOWED_HOSTS = ['192.168.1.103', '{args.IPAddress}']"""
 		message += line
 
-	with open(f"{args.ProjectDirectory}/{args.ProjectName}/settings.py", 'w') as f:
+	with open(filename, 'w') as f:
 		f.write(message)	
 
 # URLS
 def update_app_urls():
-	filename = f"{args.ProjectDirectory}/{args.AppName}/urls.py"
+	filename = f"{args.ProjectDirectory}/{args.ProjectName}/{args.AppName}/urls.py"
 
 	contents = """from django.urls import path, re_path
 from . import views
@@ -45,21 +52,21 @@ urlpatterns = [
 		f.write(contents)
 
 def update_project_urls():
-	filename = f"{args.ProjectDirectory}/{args.ProjectName}/urls.py"
+	filename = f"{args.ProjectDirectory}/{args.ProjectName}/{args.ProjectName}/urls.py"
+	with open(filename, 'r') as f:
+		contents = f.readlines()
 
-	contents = f"""from django.contrib import admin
-from django.urls import path, include
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('{args.AppName}.urls'))
-]"""
+	message = ""
+	for line in contents:	
+		if "urlpatterns = [" in line:
+			line += f"""\tpath('{args.AppName.lower()}/', include('{args.AppName}.urls')),\n"""
+		message += line
 
 	with open(filename, 'w') as f:
-		f.write(contents)
+		f.write(message)
 
 def base_html():
-	filename = f"{args.ProjectDirectory}/{args.AppName}/templates/{args.AppName}/base.html"
+	filename = f"{args.ProjectDirectory}/{args.ProjectName}/{args.AppName}/templates/{args.AppName}/base.html"
 
 	contents = """{% load static %}
 	<!DOCTYPE html>
@@ -81,7 +88,7 @@ def base_html():
 		f.write(contents)
 
 def add_home():
-	filename = f"{args.ProjectDirectory}/{args.AppName}/views.py"
+	filename = f"{args.ProjectDirectory}/{args.ProjectName}/{args.AppName}/views.py"
 
 	contents = f"""from django.shortcuts import render
 
@@ -91,6 +98,7 @@ def home(request):
 	with open(filename, 'w') as f:
 		f.write(contents)
 
+add_files()
 update_settings()
 update_app_urls()
 update_project_urls()

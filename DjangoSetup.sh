@@ -7,8 +7,8 @@ cd ~/Desktop/Python/django/
 
 django-admin startproject $projectName
 cd $projectName
+	django-admin startapp $appName
 
-django-admin startapp $appName
 cd $appName
 	touch urls.py
 	mkdir templates static
@@ -25,6 +25,4 @@ cd $appName
 		cd js
 			touch scripts.js
 			cd ../../..
-
-open -a "Visual Studio Code" .
 	
